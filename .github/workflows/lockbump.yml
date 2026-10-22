@@ -1,0 +1,20 @@
+name: lockbump
+on:
+  push:
+    branches: [scratch/lockbump]
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-audit --locked
+      - run: cargo audit || true
+      - run: cargo update -p rustls-webpki
+      - run: git diff Cargo.lock | head -60
+      - run: cargo audit
+      - run: cargo build --locked && cargo test --locked
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lock
+          path: Cargo.lock
